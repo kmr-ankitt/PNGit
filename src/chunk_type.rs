@@ -9,6 +9,9 @@
  *  +---- Ancillary bit is 1    (lowercase letter; bit 5 is 1)
 */
 
+use std::{fmt::Display, str::FromStr, convert::TryFrom};
+
+#[derive(Debug, PartialEq)]
 pub struct ChunkType([u8; 4]);
 
 impl ChunkType {
@@ -54,6 +57,44 @@ impl ChunkType {
         }
 
         true
+    }
+}
+
+impl TryFrom<[u8; 4]> for ChunkType {
+    type Error = &'static str;
+
+    fn try_from(value: [u8; 4]) -> Result<Self, Self::Error> {
+        let chunk = ChunkType(value);
+        if !chunk.is_valid() {
+            return Err("Invalid chunk type");
+        }
+
+        Ok(chunk)
+    }
+}
+
+impl FromStr for ChunkType {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.len() != 4 {
+            return Err("Invalid chunk type");
+        }
+
+        let mut bytes = [0; 4];
+        for (i, byte) in s.bytes().enumerate() {
+            bytes[i] = byte;
+        }
+
+        ChunkType::try_from(bytes)
+    }
+}
+
+impl Display for ChunkType {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        let bytes = self.bytes();
+        let s = String::from_utf8(bytes.to_vec()).unwrap();
+        write!(f, "{}", s)
     }
 }
 
